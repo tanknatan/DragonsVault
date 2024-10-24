@@ -5,16 +5,10 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalWithComputedDefaultOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,20 +23,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.Savage.Trail.presentation.navigatio.Screen
-import com.Savage.Trail.presentation.navigatio.navigatePopUpInclusive
-import com.Savage.Trail.presentation.navigatio.navigateSingleTop
 import com.dragons.vault.keys.chests.data.Prefs
 import com.dragons.vault.keys.chests.data.SoundManager
 import com.dragons.vault.keys.chests.presentation.view.ExitScreen
-import com.dragons.vault.keys.chests.presentation.view.GameScreen
 import com.dragons.vault.keys.chests.presentation.view.LevelScreen
 import com.dragons.vault.keys.chests.presentation.view.MainMenuScreen
+import com.dragons.vault.keys.chests.presentation.view.MatchingGame
 import com.dragons.vault.keys.chests.presentation.view.OptionsScreen
 import com.dragons.vault.keys.chests.presentation.view.SplashScreen
 import com.dragons.vault.keys.chests.presentation.view.StatisticsScreen
@@ -62,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = Screen.GameScreen.route
+                    startDestination = Screen.SplashScreen.route
                 ) {
 
                     composable(route = Screen.SplashScreen.route) {
@@ -78,7 +68,7 @@ class MainActivity : ComponentActivity() {
                             })
                     }
                     composable(Screen.GameScreen.route) {
-                        GameScreen(
+                        MatchingGame(
                             //navController::navigatePopUpInclusive
                         )
                     }

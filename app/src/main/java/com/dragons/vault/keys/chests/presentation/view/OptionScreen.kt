@@ -3,14 +3,12 @@ package com.dragons.vault.keys.chests.presentation.view
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,7 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.Savage.Trail.presentation.navigatio.Screen
+import com.dragons.vault.keys.chests.presentation.navigation.Screen
 
 import com.dragons.vault.keys.chests.R
 import com.dragons.vault.keys.chests.data.Prefs

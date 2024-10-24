@@ -1,7 +1,6 @@
 package com.dragons.vault.keys.chests.presentation.view
 
 import android.content.Context
-import android.content.SharedPreferences
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,13 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,8 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.Savage.Trail.presentation.navigatio.Screen
-import com.arcade.galactic.racer.domain.Level
+import com.dragons.vault.keys.chests.presentation.navigation.Screen
 import com.dragons.vault.keys.chests.R
 
 import com.dragons.vault.keys.chests.data.SoundManager
