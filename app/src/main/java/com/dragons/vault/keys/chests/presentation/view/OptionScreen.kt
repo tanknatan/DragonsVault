@@ -2,6 +2,7 @@ package com.dragons.vault.keys.chests.presentation.view
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -76,6 +77,9 @@ fun OptionsScreen(onBack: (Screen) -> Unit) {
     LaunchedEffect(Unit) {
         SoundManager.pauseGameMusic()
         SoundManager.resumeMusic()
+    }
+    BackHandler {
+        onBack(Screen.MainMenuScreen)
     }
 
     Box(
@@ -247,7 +251,7 @@ fun OptionsScreen(onBack: (Screen) -> Unit) {
             Box(
                 modifier = Modifier
                     .size(150.dp, 100.dp)
-                    .clickable{ onBack(Screen.MainMenuScreen)}
+                    .clickable { onBack(Screen.MainMenuScreen) }
                     .padding(bottom = 16.dp),
                 contentAlignment = Alignment.Center
             ) {

@@ -47,13 +47,15 @@ fun StatisticsScreen(
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("LevelPreferences", Context.MODE_PRIVATE)
-
-    // Используем LevelManager для получения статистики
     val levelManager = remember { LevelManager(sharedPreferences) }
-    val completedLevels = levelManager.getCompletedLevels() // Получаем список пройденных уровней
+
+    // Получаем список завершенных уровней
+    val completedLevels = levelManager.getCompletedLevels()
+
     BackHandler {
         onBack(Screen.MainMenuScreen)
     }
+
     Box {
         Image(
             painter = painterResource(id = R.drawable.background), // Замените на ваше фоновое изображение
@@ -73,7 +75,7 @@ fun StatisticsScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -141,20 +143,21 @@ fun LevelStatsRow(level: Int, date: String, time: String) {
 
             // Отображение даты прохождения
             Text(
-                text = "Date: $date",
+                text = date,
                 color = Color.White,
                 fontSize = 16.sp
             )
 
             // Отображение времени прохождения
             Text(
-                text = "Time: $time",
+                text = time,
                 color = Color.White,
                 fontSize = 16.sp
             )
         }
     }
 }
+
 
 @Preview
 @Composable
