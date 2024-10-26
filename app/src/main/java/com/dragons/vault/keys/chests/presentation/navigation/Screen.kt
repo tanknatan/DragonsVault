@@ -11,8 +11,8 @@ sealed class Screen(
 
     data object SplashScreen : Screen("splash_screen")
     data object MainMenuScreen : Screen("main_menu_screen")
-    object LevelScreen : Screen("level_screen")
-    object GameScreen : Screen("game_screen/{level}") { // Путь с аргументом
+    data object LevelScreen : Screen("level_screen")
+    data object GameScreen : Screen("game_screen/{level}") { // Путь с аргументом
         fun routeWithArgs(level: Int) = "game_screen/$level" // Функция для создания маршрута с аргументом
     }
 

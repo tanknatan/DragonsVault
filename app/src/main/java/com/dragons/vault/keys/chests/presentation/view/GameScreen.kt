@@ -40,12 +40,18 @@ import kotlin.math.roundToInt
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -66,17 +72,17 @@ fun MatchingGame(
     onNextLevel: () -> Unit,
 ) {
     val chests = listOf("chest_1", "chest_2", "chest_3", "chest_4", "chest_5", "chest_6")
-    var shuffledKeys by remember {
-        mutableStateOf(
-            listOf(
+    val shuffledKeys = remember {
+        mutableStateListOf<String>().apply {
+            addAll(listOf(
                 "key_1",
                 "key_2",
                 "key_3",
                 "key_4",
                 "key_5",
                 "key_6"
-            ).shuffled()
-        )
+            ))
+        }
     }
     var openedChests by remember { mutableStateOf(listOf<String>()) }
     var timerExpired by remember { mutableStateOf(false) }
@@ -92,6 +98,7 @@ fun MatchingGame(
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("LevelPreferences", Context.MODE_PRIVATE)
     val levelManager = remember { LevelManager(sharedPreferences) }
+    var chestPositions by remember { mutableStateOf(mapOf<String, Offset>()) }
 
     // Основная логика таймера
     LaunchedEffect(Unit) {
@@ -236,10 +243,13 @@ fun MatchingGame(
                                     Chest(
                                         name = chests[index],
                                         isOpened = openedChests.contains(chests[index]),
+                                        onPositionChanged = { position ->
+                                            chestPositions = chestPositions + (chests[index] to position)
+                                        },
                                         onChestOpened = { key ->
                                             if (chests[index].endsWith(key.last().toString())) {
                                                 openedChests = openedChests + chests[index]
-                                                shuffledKeys = shuffledKeys - key
+                                                shuffledKeys -= key
                                             }
                                         },
                                     )
@@ -247,6 +257,8 @@ fun MatchingGame(
                             }
                         }
                     }
+                    val keySize = LocalDensity.current.run { 64.dp.toPx() }.toInt()
+                    val chestSize = LocalDensity.current.run { 64.dp.toPx() }.toInt()
 
                     Spacer(modifier = Modifier.height(32.dp))
 
@@ -262,91 +274,29 @@ fun MatchingGame(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            shuffledKeys.take(3).forEach { key ->
+                            shuffledKeys.forEach { key ->
                                 DraggableKey(
                                     openedChests,
                                     name = key,
                                     onDragEnded = { position ->
-                                        val matchedChest =
-                                            chests.find { it.endsWith(key.last().toString()) }
-                                        if (matchedChest != null && !openedChests.contains(
-                                                matchedChest
-                                            )
-                                        ) {
+                                        Log.d(
+                                            "GameScreen",
+                                            "beOverlap: $chestPositions"
+                                        )
+                                        val matchedChest = chestPositions.entries.find { (chest, chestOffset) ->
+                                            Log.d("GameScreen", "${!openedChests.contains(chest)} && ${key.last() == chest.last()} && ${checkOverlap(position, chestOffset, keySize, chestSize)}")
+                                            Log.d("GameScreen", "$chest $key")
+                                            !openedChests.contains(chest) && key.last() == chest.last() &&
+                                                    checkOverlap(position, chestOffset, keySize, chestSize).also {
+                                                        Log.d(
+                                                            "GameScreen",
+                                                            "checkOverlap: $position $chestOffset $keySize $chestSize ${checkOverlap(position, chestOffset, keySize, chestSize)}"
+                                                        )
+                                                    }
+                                        }?.key
+                                        if (matchedChest != null) {
                                             openedChests = openedChests + matchedChest
-                                        }
-                                    })
-                            }
-                        }
-
-                        // Вторая строка ключей (смещенная)
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 30.dp) // Смещение для шахматного порядка
-                        ) {
-                            shuffledKeys.drop(3).take(3).forEach { key ->
-                                DraggableKey(
-                                    openedChests,
-                                    name = key,
-                                    onDragEnded = { position ->
-                                        val matchedChest =
-                                            chests.find { it.endsWith(key.last().toString()) }
-                                        if (matchedChest != null && !openedChests.contains(
-                                                matchedChest
-                                            )
-                                        ) {
-                                            openedChests = openedChests + matchedChest
-                                        }
-                                    })
-                            }
-                        }
-
-                        // Третья строка ключей
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            shuffledKeys.drop(6).take(3).forEach { key ->
-                                DraggableKey(
-                                    openedChests,
-                                    name = key,
-                                    onDragEnded = { position ->
-                                        val matchedChest =
-                                            chests.find { it.endsWith(key.last().toString()) }
-                                        if (matchedChest != null && !openedChests.contains(
-                                                matchedChest
-                                            )
-                                        ) {
-                                            openedChests = openedChests + matchedChest
-                                        }
-                                    })
-                            }
-                        }
-
-                        // Четвертая строка ключей (смещенная)
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 30.dp) // Смещение для шахматного порядка
-                        ) {
-                            shuffledKeys.drop(9).take(3).forEach { key ->
-                                DraggableKey(
-                                    openedChests,
-                                    name = key,
-                                    onDragEnded = { position ->
-                                        val matchedChest =
-                                            chests.find { it.endsWith(key.last().toString()) }
-                                        if (matchedChest != null && !openedChests.contains(
-                                                matchedChest
-                                            )
-                                        ) {
-                                            openedChests = openedChests + matchedChest
+                                            shuffledKeys -= key
                                         }
                                     })
                             }
@@ -431,7 +381,7 @@ fun MatchingGame(
                                 chests.find { it.endsWith(nextKey.last().toString()) }
                             if (matchedChest != null) {
                                 openedChests = openedChests + matchedChest
-                                shuffledKeys = shuffledKeys - nextKey
+                                shuffledKeys -= nextKey
                                 autoPlaceKeyBonus--
                             }
                         }
@@ -505,15 +455,17 @@ fun saveGameProgress(context: Context, level: Int, remainingTime: Int) {
 
 
 @Composable
-fun Chest(name: String, isOpened: Boolean, onChestOpened: (String) -> Unit) {
+fun Chest(name: String, isOpened: Boolean,
+          onPositionChanged: (Offset) -> Unit,
+          onChestOpened: (String) -> Unit) {
     val imageRes = when (name) {
-        "chest_1" -> R.drawable.chest_1
-        "chest_2" -> R.drawable.chest_2
-        "chest_3" -> R.drawable.chest_3
-        "chest_4" -> R.drawable.chest_4
-        "chest_5" -> R.drawable.chest_5
-        "chest_6" -> R.drawable.chest_6
-        else -> R.drawable.chest_1 // Default case
+            "chest_1" -> R.drawable.chest_1
+            "chest_2" -> R.drawable.chest_2
+            "chest_3" -> R.drawable.chest_3
+            "chest_4" -> R.drawable.chest_4
+            "chest_5" -> R.drawable.chest_5
+            "chest_6" -> R.drawable.chest_6
+        else -> throw IllegalArgumentException("Invalid chest name: $name")
     }
 
     Column(
@@ -532,6 +484,9 @@ fun Chest(name: String, isOpened: Boolean, onChestOpened: (String) -> Unit) {
                 .then(
                     if (isOpened) Modifier.border(2.dp, Color.Green) else Modifier
                 )
+                .onGloballyPositioned { layoutCoordinates ->
+                    onPositionChanged(layoutCoordinates.positionInRoot())
+                }
                 .pointerInput(Unit) {
                     detectDragGestures { _, dragAmount ->
                         // Handle drag to open chest
@@ -551,7 +506,7 @@ fun Chest(name: String, isOpened: Boolean, onChestOpened: (String) -> Unit) {
                         "chest_4" -> painterResource(id = R.drawable.key_4)
                         "chest_5" -> painterResource(id = R.drawable.key_5)
                         "chest_6" -> painterResource(id = R.drawable.key_6)
-                        else -> painterResource(id = R.drawable.key_1) // Default case
+                        else -> throw IllegalArgumentException("Invalid chest name: $name") // Default case
                     },
                     contentDescription = null,
                     modifier = Modifier.size(64.dp)
@@ -565,7 +520,7 @@ fun Chest(name: String, isOpened: Boolean, onChestOpened: (String) -> Unit) {
 fun DraggableKey(openedChests: List<String>, name: String, onDragEnded: (Offset) -> Unit) {
     var offsetX by remember { mutableStateOf(0f) }
     var offsetY by remember { mutableStateOf(0f) }
-
+    var position by remember { mutableStateOf(Offset.Zero) }
     val imageRes = when (name) {
         "key_1" -> R.drawable.key_1
         "key_2" -> R.drawable.key_2
@@ -573,17 +528,20 @@ fun DraggableKey(openedChests: List<String>, name: String, onDragEnded: (Offset)
         "key_4" -> R.drawable.key_4
         "key_5" -> R.drawable.key_5
         "key_6" -> R.drawable.key_6
-        else -> R.drawable.key_1 // Default case
+        else -> throw IllegalArgumentException("Invalid key name: $name") // Default case
     }
-    if (!openedChests.map { it.replace("chest", "key") }.contains(name)) {
+    if (!openedChests.any { it.last() == name.last()}) {
         Box(
             modifier = Modifier
                 .offset(x = offsetX.dp, y = offsetY.dp)
                 .size(64.dp)
+                .onGloballyPositioned {
+                    position = it.positionInRoot()
+                }
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragEnd = {
-                            onDragEnded(Offset(offsetX, offsetY))
+                            onDragEnded(position)
                         },
                         onDrag = { change, dragAmount ->
                             offsetX += (dragAmount.x / 1.9).roundToInt()
@@ -601,4 +559,15 @@ fun DraggableKey(openedChests: List<String>, name: String, onDragEnded: (Offset)
         }
     }
 }
+fun checkOverlap(
+    keyOffset: Offset,
+    chestOffset: Offset,
+    keySize: Int,
+    chestSize: Int
+): Boolean {
 
+    return keyOffset.x < chestOffset.x + chestSize &&
+            keyOffset.x + keySize > chestOffset.x &&
+            keyOffset.y < chestOffset.y + chestSize &&
+            keyOffset.y + keySize > chestOffset.y
+}
