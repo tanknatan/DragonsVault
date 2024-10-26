@@ -46,13 +46,12 @@ import com.dragons.vault.keys.chests.presentation.navigation.OutlinedText
 @Composable
 fun LevelScreen(
     onBack: (Screen) -> Unit,
-    onChooseLevel: (Level) -> Unit
+    onChooseLevel: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("LevelPreferences", Context.MODE_PRIVATE)
-
-    // Используем LevelManager с sharedPreferences
     val levelManager = remember { LevelManager(sharedPreferences) }
+
     BackHandler {
         onBack(Screen.MainMenuScreen)
     }
@@ -63,7 +62,7 @@ fun LevelScreen(
 
     Box {
         Image(
-            painter = painterResource(id = R.drawable.background), // Замените на ваше фоновое изображение
+            painter = painterResource(id = R.drawable.background),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -110,23 +109,23 @@ fun LevelScreen(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                for (level in 1..9) { // 9 уровней
+                for (level in 1..9) {
                     val isUnlocked = levelManager.isLevelUnlocked(level)
-                    val stars = levelManager.getStarsForLevel(level)  // Получаем количество звёзд из LevelManager
+                    val stars = levelManager.getStarsForLevel(level)
 
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()  // Плашка на всю ширину
-                            .padding(vertical = 0.dp)  // Отступы между плашками
+                            .fillMaxWidth()
+                            .padding(vertical = 0.dp)
                             .clickable(enabled = isUnlocked) {
                                 if (isUnlocked) {
                                     SoundManager.playSound()
-                                    onChooseLevel(Level.entries[level - 1])
+                                    onChooseLevel(level) // Передаем выбранный уровень
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        LevelBanner(level = level, stars = stars)  // Передаем количество звёзд в LevelBanner
+                        LevelBanner(level = level, stars = stars)
                     }
                 }
             }
@@ -134,27 +133,22 @@ fun LevelScreen(
     }
 }
 
-@Preview
-@Composable
-fun LevelScreenPreview() {
-    LevelScreen(onBack = {}, onChooseLevel = {})
-}
 
 @Composable
 fun LevelBanner(level: Int, stars: Int) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)  // Уменьшенный отступ снаружи
-            .clip(RoundedCornerShape(8.dp))  // Меньший радиус скругления
-            .background(Color(0x99A52A2A))  // Полупрозрачный фон
-            .border(2.dp, Color(0xFF7F00FF), RoundedCornerShape(8.dp)), // Фиолетовая рамка
+            .padding(4.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0x99A52A2A))
+            .border(2.dp, Color(0xFF7F00FF), RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp, horizontal = 12.dp),  // Уменьшенные внутренние отступы
+                .padding(vertical = 8.dp, horizontal = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -162,7 +156,7 @@ fun LevelBanner(level: Int, stars: Int) {
             Text(
                 text = "LEVEL $level",
                 color = Color.White,
-                fontSize = 25.sp,  // Меньший размер текста
+                fontSize = 25.sp,
                 fontWeight = FontWeight.Bold
             )
 
@@ -173,9 +167,9 @@ fun LevelBanner(level: Int, stars: Int) {
                         painter = painterResource(id = if (i <= stars) R.drawable.ic_star_filled else R.drawable.ic_star_empty),
                         contentDescription = "Star $i",
                         tint = if (i <= stars) Color.Yellow else Color.Black,
-                        modifier = Modifier.size(35.dp)  // Уменьшенный размер звёзд
+                        modifier = Modifier.size(35.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp)) // Отступ между звёздами
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
             }
         }

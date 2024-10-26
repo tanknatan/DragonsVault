@@ -11,17 +11,14 @@ sealed class Screen(
 
     data object SplashScreen : Screen("splash_screen")
     data object MainMenuScreen : Screen("main_menu_screen")
-    data object GameScreen : Screen("game_screen") {
-        override val route = "$screenRoute/{level}"
-        fun getLevel(navBackStackEntry: NavBackStackEntry): Level {
-            return navBackStackEntry.arguments?.getString("level")
-                ?.let { Level.valueOf(it) } ?: Level.LEVEL_1
-        }
+    object LevelScreen : Screen("level_screen")
+    object GameScreen : Screen("game_screen/{level}") { // Путь с аргументом
+        fun routeWithArgs(level: Int) = "game_screen/$level" // Функция для создания маршрута с аргументом
     }
 
     data object StatisticsScreen : Screen("statistics_screen")
     data object OptionScreen : Screen("settings_screen")
-    data object LevelScreen : Screen("level_screen")
-    data object GameEndScreen : Screen("game_end_screen/{level}/{isVictory}")
+    data object GameWonScreen : Screen("game_won_screen")
+    data object GameLostScreen : Screen("game_lost_screen")
     data object ExitScreen : Screen("exit_screen")
 }

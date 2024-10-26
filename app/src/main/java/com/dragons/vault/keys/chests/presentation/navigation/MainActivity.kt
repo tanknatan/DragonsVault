@@ -24,18 +24,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.dragons.vault.keys.chests.data.Prefs
 import com.dragons.vault.keys.chests.data.SoundManager
 import com.dragons.vault.keys.chests.presentation.view.ExitScreen
 import com.dragons.vault.keys.chests.presentation.view.LevelScreen
+import com.dragons.vault.keys.chests.presentation.view.LossScreen
+
 import com.dragons.vault.keys.chests.presentation.view.MainMenuScreen
 import com.dragons.vault.keys.chests.presentation.view.MatchingGame
 import com.dragons.vault.keys.chests.presentation.view.OptionsScreen
 import com.dragons.vault.keys.chests.presentation.view.SplashScreen
 import com.dragons.vault.keys.chests.presentation.view.StatisticsScreen
+import com.dragons.vault.keys.chests.presentation.view.WinScreen
 import com.dragons.vault.keys.chests.ui.theme.DragonsVaultTheme
 import com.dragons.vault.keys.chests.ui.theme.myfont
 
@@ -62,16 +67,34 @@ class MainActivity : ComponentActivity() {
                         MainMenuScreen(navController::navigatePopUpInclusive)
                     }
                     composable(Screen.LevelScreen.route) {
-                        LevelScreen(onBack = navController::navigatePopUpInclusive,
+                        LevelScreen(
+                            onBack = navController::navigatePopUpInclusive ,
                             onChooseLevel = { level ->
-                                navController.navigateSingleTop(Screen.GameScreen, level)
-                            })
-                    }
-                    composable(Screen.GameScreen.route) {
-                        MatchingGame(
-                            //navController::navigatePopUpInclusive
+                                navController.navigate(Screen.GameScreen.routeWithArgs(level))
+                            }
                         )
                     }
+                    composable(Screen.GameScreen.route, arguments = listOf(navArgument("level") { type = NavType.IntType })) { backStackEntry ->
+                        val level = backStackEntry.arguments?.getInt("level") ?: 1
+                        MatchingGame(level = level, navController::navigatePopUpInclusive,
+// Функция для перехода на следующий уровень
+                            onNextLevel = {
+                                // Переход на следующий уровень
+                                navController.navigate("game_screen/${level + 1}") {
+                                    // Очищаем стек до текущего уровня
+                                    popUpTo("game_screen/$level") { inclusive = true }
+                                }
+                            }, restartGame = {
+                                // Перезапуск текущего уровня
+                                navController.navigate("game_screen/$level") {
+                                    // Очищаем стек до текущего уровня
+                                    popUpTo("game_screen/$level") { inclusive = true }
+                                }
+                            }
+
+                            ,)
+                    }
+
                     composable(Screen.ExitScreen.route) {
                         ExitScreen(
                             navController::navigatePopUpInclusive
@@ -85,6 +108,24 @@ class MainActivity : ComponentActivity() {
                             navController::navigatePopUpInclusive
                         )
                     }
+
+                    composable("matching_game/{level}", arguments = listOf(navArgument("level") { type = NavType.IntType })) { backStackEntry ->
+                        val level = backStackEntry.arguments?.getInt("level") ?: 1
+                        MatchingGame(level = level,  navController::navigatePopUpInclusive,onNextLevel = {
+                            // Переход на следующий уровень
+                            navController.navigate("game_screen/${level + 1}") {
+                                // Очищаем стек до текущего уровня
+                                popUpTo("game_screen/$level") { inclusive = true }
+                            }
+                        }, restartGame = {
+                            // Перезапуск текущего уровня
+                            navController.navigate("game_screen/$level") {
+                                // Очищаем стек до текущего уровня
+                                popUpTo("game_screen/$level") { inclusive = true }
+                            }
+                        },)
+                    }
+
 
                 }
             }
