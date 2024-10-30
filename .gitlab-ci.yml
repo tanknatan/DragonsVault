@@ -1,0 +1,66 @@
+image: inovex/gitlab-ci-android
+
+stages:
+  - build
+
+variables:
+  ANDROID_SDK_ROOT: /Library/Android/sdk
+  KEYSTORE_ALIAS: key0
+  KEYSTORE_PASSWORD: newapp
+  KEY_PASSWORD: newapp
+  APPLICATION_ID: com.dragons.vault.keys.chests
+  TELEGRAM_BOT_TOKEN: 6667949208:AAEz2A6DWM4n805sY_O6ycQ5CufDFQU04Dk
+  TELEGRAM_CHAT_ID: -4031862147
+  KEYPASS_FILE: keystore.pass
+  KEYSTORE_FILE: keystore.jks
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+before_script:
+  - export GRADLE_USER_HOME=$(pwd)/.gradle
+  - export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+  - export ANDROID_HOME=/sdk
+  - export PATH=${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools/33.0.1
+
+  - chmod +x ./gradlew
+
+build:
+  stage: build
+  script:
+    - |
+      KEYSTORE_FILE=$CI_PROJECT_DIR/app/keystore.jks
+  
+  
+      if [ -f $KEYSTORE_FILE ]; then
+      echo "File $KEYSTORE_FILE already exists."
+      else
+      keytool -genkeypair -v -keystore $KEYSTORE_FILE -keyalg RSA -keysize 2048 -validity 10000 -alias $KEYSTORE_ALIAS -storepass $KEYSTORE_PASSWORD -keypass $KEY_PASSWORD -dname "CN=John Doe, OU=Dev, O=Company, L=City, ST=State, C=US"
+      echo "Created $KEYSTORE_FILE in the app directory."
+      fi
+
+
+
+    - ./gradlew  assembleRelease
+    - mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/$APPLICATION_ID.apk
+    - ls app/build/outputs/apk/release/
+    - ./gradlew  bundleRelease
+    - ls app/build/outputs/bundle/release/
+    - mv app/build/outputs/bundle/release/app-release.aab app/build/outputs/bundle/release/$APPLICATION_ID.aab
+
+
+  artifacts:
+    name: $APPLICATION_ID
+    paths:
+      - app/build/outputs/apk/release/$APPLICATION_ID.apk
+      - app/build/outputs/bundle/release/$APPLICATION_ID.aab
+      - app/keystore.jks
+
+  only:
+    - master
+after_script:
+  - |
+    MESSAGE="$CI_COMMIT_MESSAGE"
+    curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage -d "chat_id=$TELEGRAM_CHAT_ID" -d "text=$MESSAGE"
+
+    curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/bundle/release/$APPLICATION_ID.aab -F text=MESSAGE -H "Content-Type: multipart/form-data" -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument
+    curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/keystore.jks -F text="Keystore File" -H "Content-Type: multipart/form-data" -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument
+    curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/release/$APPLICATION_ID.apk -F text=MESSAGE -H "Content-Type: multipart/form-data" -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument
